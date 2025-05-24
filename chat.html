@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>チャットルーム</title>
+</head>
+<body>
+
+  <header>
+    <h1>チャットルーム</h1>
+  </header>
+
+  <main>
+    <div>
+      <label for="username">名前:</label>
+      <input type="text" id="username" placeholder="あなたの名前" required />
+    </div>
+
+    <section id="chat-box" style="height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px; margin-top: 10px;">
+      <!-- メッセージ表示欄 -->
+    </section>
+
+    <form id="chat-form">
+      <input type="text" id="message-input" placeholder="メッセージを入力" required />
+      <button type="submit">送信</button>
+    </form>
+  </main>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('message-input');
+    const usernameInput = document.getElementById('username');
+
+    const ws = new WebSocket('ws://localhost:3000'); // WebSocketサーバーのアドレスに変更すること
+
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+      const username = usernameInput.value.trim();
+      const message = input.value.trim();
+      if (!username || !message) return;
+
+      const now = new Date();
+      const timestamp = now.toLocaleTimeString();
+
+      const data = {
+        user: username,
+        message: message,
+        time: timestamp
+      };
+
+      ws.send(JSON.stringify(data));
+      input.value = '';
+    });
+
+    ws.addEventListener('message', function(event) {
+      const data = JSON.parse(event.data);
+      const messageElem = document.createElement('div');
+      messageElem.innerHTML = `<strong>${data.user}</strong> [${data.time}]: ${data.message}`;
+      chatBox.appendChild(messageElem);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+  </script>
+
+</body>
+</html>
